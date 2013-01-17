@@ -1,0 +1,19 @@
+Friday December 09 2011 07:07:08 PM INFO create_usercreated user: jdeemer:x:123:444:GECOS:/home/csmajs/jdeemer/cs183/proj2/project2/home/myhome:/bin/bash
+Friday December 09 2011 07:09:35 PM INFO archive_user removed and archived user: jdeemer
+Friday December 09 2011 07:21:59 PM INFO create_user created user: jdeemer:x:123:444:GECOS:/home/csmajs/jdeemer/cs183/proj2/project2/home/myhome:/bin/bash
+Friday December 09 2011 07:22:52 PM INFO archive_user removed and archived user: jdeemer
+Friday December 09 2011 07:26:05 PM INFO create_user created user: jdeemer:x:123:444:GECOS:/home/csmajs/jdeemer/cs183/proj2/project2/home/myhome:/bin/bash
+Friday December 09 2011 07:26:13 PM INFO archive_user removed and archived user: jdeemer
+Friday December 09 2011 07:28:13 PM WARN Error: Login must exist in etc/passwd
+Friday December 09 2011 07:28:47 PM WARN Error: Login already exists in passwd
+Friday December 09 2011 07:28:51 PM WARN Error: Login already exists in passwd
+Friday December 09 2011 07:30:24 PM WARN Error: Login already exists in passwd
+Friday December 09 2011 07:30:49 PM INFO archive_user removed and archived user: jdeemer
+Friday December 09 2011 07:37:00 PM WARN Error: Login must exist in etc/passwd
+Friday December 09 2011 07:37:05 PM INFO archive_user removed and archived user: jdeemer
+Friday December 09 2011 07:40:20 PM WARN Error: Login must exist in etc/passwd
+Friday December 09 2011 07:41:27 PM INFO archive_user removed and archived user: jdeemer
+Friday December 09 2011 07:41:28 PM INFO create_user created user: jdeemer:x:123:444:GECOS:/home/csmajs/jdeemer/cs183/proj2/project2/home/myhome:/bin/bash
+Friday December 09 2011 07:41:32 PM INFO archive_user removed and archived user: jdeemer
+Friday December 09 2011 07:41:45 PM INFO create_user created user: jdeemer:x:123:444:GECOS:/home/csmajs/jdeemer/cs183/proj2/project2/home/myhome:/bin/bash
+Friday December 09 2011 07:41:47 PM INFO archive_user removed and archived user: jdeemer

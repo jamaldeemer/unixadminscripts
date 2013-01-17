@@ -1,0 +1,142 @@
+#!/usr/bin/python
+
+import os
+import re
+import sys
+from optparse import OptionParser
+import subprocess
+import fileinput
+import datetime
+
+scriptname = "create_user"
+
+pwpath = os.path.join(os.getcwd(),"etc/passwd")
+grpath = os.path.join(os.getcwd(),"etc/group")
+logpath = os.path.join(os.getcwd(),"accounts.log")
+
+
+def errormsg(msg,ev):
+	sys.stderr.write('Error: ' + msg + "\n")
+	status = dl + " WARN " + scriptname + " Error: " + msg + "\n"
+	sr = open(logpath,"a")
+	sr.write(status)
+	sys.exit(ev)
+
+#Start here
+
+parser = OptionParser()
+parser.add_option('-l',dest='login',metavar='FILE')
+parser.add_option('-u',dest='uid',metavar='FILE')
+parser.add_option('-g',dest='gid',metavar='FILE')
+parser.add_option('-i',dest='gecos',metavar='FILE')
+parser.add_option('-d',dest='homedir',metavar='FILE')
+parser.add_option('-s',dest='shell',metavar='FILE')
+
+(options,args) = parser.parse_args()
+
+################
+
+#datetime init
+today = datetime.datetime.today()
+format = "%Y%m%d%H%M%S"
+lformat = "%A %B %d %Y %I:%M:%S %p"
+d = today.strftime(format)
+dl = today.strftime(lformat)
+
+#Error check 1 - all arguments present
+
+for opt, value in options.__dict__.items():
+	if value == None:
+		errormsg("All mandatory arguments must be present",1)
+
+
+#Error check 2 - Login alphanumeric
+if not re.match("[a-zA-Z0-9]*$",options.login):
+	errormsg("The login must be alphanumeric",1)
+
+#Error check 3 - Doesn't already exist in passwd
+fr = open(pwpath,"r")
+for line in fr:
+	lpart = re.split(":",line)[0]
+	if lpart == options.login:
+		errormsg("Login already exists in passwd",1)
+
+#Error check 4 - UID is numeric
+if not re.match("[0-9]*$",options.uid):
+	errormsg("The UID must be numeric",1)
+
+#Error check 5 - UID not already in etc/passwd
+fr = open(pwpath,"r")
+for line in fr:
+	splitted = re.split(":",line)
+	if len(splitted) >= 3:
+		if splitted[2] == options.uid:
+			errormsg("UID already exists in passwd",1)
+
+#Error check 6 - GID is numeric
+if not re.match("[0-9]*$",options.gid):
+	errormsg("The GID must be numeric",1)
+
+#Error check 7 - GID already exists in etc/group
+gr = open(grpath,"r")
+for line in gr:
+	gpart = re.split(":",line)
+	if len(gpart) >= 3:
+		if gpart[2] == options.gid:
+			return 
+errormsg("GID must already exist in etc/group",1)
+
+#Error check 8 - Home directory not already in etc/passwd
+fr = open(pwpath,"r")
+for line in fr:
+	fpart = re.split(":",line)
+	if len(fpart) >= 6:
+		if fpart[5] == options.homedir:
+			errormsg("Home directory already in use",1)
+
+
+#Error check 9 - Home directory must be a directory in 'home'
+homed = os.path.join(os.getcwd(),"home/")
+if not re.match(homed,options.homedir):
+	errormsg("Home directory must be a directory in 'home'",1)
+		
+
+#Error check 10 - Shell must be either '/bin/bash' or '/bin/tcsh'
+if not (options.shell == "/bin/bash" or options.shell == "/bin/tcsh"):
+	print options.shell
+	errormsg("Shell must be either '/bin/bash' or '/bin/tcsh'",1)
+
+
+
+# Action 1 - Create entry in passwd
+
+pending_entry = ""
+pending_entry += options.login + ":"
+pending_entry += "x:"
+pending_entry += options.uid + ":"
+pending_entry += options.gid + ":"
+pending_entry += options.gecos + ":"
+pending_entry += options.homedir + ":"
+pending_entry += options.shell
+
+os.popen("cp " + pwpath + " " + pwpath + "." + d)  # Backup
+fa = open(pwpath,"a")
+fa.write(pending_entry + "\n")
+
+
+# Action 2 - Create Home directory
+os.mkdir(options.homedir)
+
+
+# Action 3 - Move contents of skel to home
+srcpath = os.path.join(os.getcwd(),"etc/skel/")
+destpath = options.homedir
+
+result = os.popen("cp -R " + srcpath + ".[a-z]* " + destpath)
+
+#Append success to log
+status = dl + " INFO " + scriptname + " created user: " + pending_entry + "\n"
+sr = open(logpath,"a")
+sr.write(status)
+
+

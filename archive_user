@@ -1,0 +1,93 @@
+#!/usr/bin/python
+
+import os
+import re
+import sys
+from optparse import OptionParser
+import subprocess
+import fileinput
+import datetime
+
+scriptname = "archive_user"
+
+pwpath = os.path.join(os.getcwd(),"etc/passwd")
+grpath = os.path.join(os.getcwd(),"etc/group")
+logpath = os.path.join(os.getcwd(),"accounts.log")
+arpath = os.path.join(os.getcwd(), "archived_homedirs")
+
+def getUnixTime():
+	present = datetime.datetime.now()
+	return present.strftime("%s")
+
+def errormsg(msg,ev):
+	sys.stderr.write('Error: ' + msg + "\n")
+	status = dl + " WARN " + scriptname + " Error: " + msg + "\n"
+	sr = open(logpath,"a")
+	sr.write(status)
+	sys.exit(ev)
+
+
+#Start here
+
+#datetime init
+today = datetime.datetime.today()
+format = "%Y%m%d%H%M%S"
+d = today.strftime(format)
+lformat = "%A %B %d %Y %I:%M:%S %p"
+dl = today.strftime(lformat)
+
+parser = OptionParser()
+parser.add_option('-l',dest='login',metavar='FILE')
+
+(options,args) = parser.parse_args()
+
+#Error check 1 - Mandatory arguments present
+for opt, value in options.__dict__.items():
+	if value == None:
+		errormsg("All mandatory arguments must be present",1)
+
+		
+#Error check 2 - the login is in etc/passwd
+pr = open(pwpath,"r")
+for line in pr:
+	part = re.split(":",line)
+	if part[0] == options.login:
+		return 
+errormsg("Login must exist in etc/passwd",1)
+
+
+
+
+
+# Action 1 - Archive the home directory
+
+fr = open(pwpath,"r")
+for line in fr:
+	splitted = re.split(":",line)
+	if splitted[0] == options.login:
+		homedir = splitted[5]
+		dirs = re.split("/",homedir)
+		last = len(dirs)
+		os.popen("mv " + homedir + "  " + arpath + "/" + dirs[last-1]  + "." + getUnixTime())  
+
+
+# Action 2 - Remove the password file entry 
+for line in fileinput.input(pwpath,inplace=1, backup='.'+d):
+	line = line.strip()
+	lpart = re.split(":",line)
+	if not lpart[0] == options.login:
+		print line
+
+
+#Append success to log
+status = dl + " INFO " + scriptname + " removed and archived user: " + options.login  + "\n"
+sr = open(logpath,"a")
+sr.write(status)
+
+
+
+
+
+
+
+

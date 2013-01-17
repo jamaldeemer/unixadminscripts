@@ -1,0 +1,93 @@
+#!/usr/bin/python
+
+import os
+import re
+import sys
+from optparse import OptionParser
+import subprocess
+import datetime
+
+
+scriptname = "add_group"
+
+pwpath = os.path.join(os.getcwd(),"etc/passwd")
+grpath = os.path.join(os.getcwd(),"etc/group")
+logpath = os.path.join(os.getcwd(),"accounts.log")
+
+
+def errormsg(msg,ev):
+	sys.stderr.write('Error: ' + msg + "\n")
+	status = dl + " WARN " + scriptname + " Error: " + msg + "\n"
+	sr = open(logpath,"a")
+	sr.write(status)
+	sys.exit(ev)
+
+
+#Start here
+
+parser = OptionParser()
+parser.add_option('-n',dest='name',metavar='FILE')
+parser.add_option('-g',dest='gid',metavar='FILE')
+
+
+(options,args) = parser.parse_args()
+
+today = datetime.datetime.today()
+format = "%Y%m%d%H%M%S"
+d = today.strftime(format)
+
+################
+
+#Error check 1 - all arguments present
+	for opt, value in options.__dict__.items():
+		if value == None:
+			errormsg("All mandatory arguments must be present",1)
+#Error check 2 - group name not already in etc/group
+	gr = open(grpath,"r")
+	for line in gr:
+		gpart = re.split(":",line)
+		if len(gpart) >= 1:
+			if gpart[0] == options.name:
+				errormsg("Group name is already in etc/group",1)
+
+#Error check 3 - GID does not already exist
+gr = open(grpath,"r")
+for line in gr:
+	gpart = re.split(":",line)
+	if len(gpart) >= 3:
+		if gpart[2] == options.gid:
+			errormsg("GID already exists in etc/group",1)
+
+#Error check 4 - Group name alphanumeric			
+if not re.match("[a-zA-Z0-9]*$",options.name):
+	errormsg("The group name must be alphanumeric",1)
+
+#Error check 5 - GID numeric and within range
+if not re.match("[0-9]*$",options.gid):
+	errormsg("The GID  must be numeric",1)
+if (int(options.gid) > 65535 or (options.gid) < 0):
+	errormsg("The GID must be between 0 and 65535",1)
+
+
+pending_entry = ""
+pending_entry += options.name + ":"
+pending_entry += "x:"
+pending_entry += options.gid + ":"
+
+
+os.popen("cp " + grpath + " " + grpath + "." + d)  # Backup
+
+
+fa = open(grpath,"a")
+fa.write(pending_entry + "\n")
+
+
+#Append success to log
+status = dl + " INFO " + scriptname + "created group: " + pending_entry + "\n"
+sr = open(logpath,"a")
+sr.write(status)
+
+
+
+
+
